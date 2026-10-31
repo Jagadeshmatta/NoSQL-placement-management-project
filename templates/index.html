@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>College Placement Management</title>
+<style>
+/* ====== CHANGE THE THEME HERE (edit these colors) ====== */
+:root{
+  --primary:#4f46e5;      /* main color (buttons, headings) */
+  --primary-2:#06b6d4;    /* second color (gradient) */
+  --bg:#f1f5f9;           /* page background */
+  --card:#ffffff;         /* card background */
+  --text:#1e293b;
+  --muted:#64748b;
+  --danger:#e11d48;
+}
+/* Ideas - Green: #059669 / #84cc16   Orange: #ea580c / #f59e0b   Pink: #db2777 / #8b5cf6 */
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;padding:28px 20px 70px}
+header .wrap,main{max-width:1050px;margin:0 auto;padding:0 16px}
+header h1{margin:0 0 6px;font-size:28px}
+header p{margin:0;opacity:.9}
+nav{margin-top:16px}
+nav a{color:#fff;text-decoration:none;background:rgba(255,255,255,.18);padding:6px 14px;border-radius:20px;margin-right:8px;font-size:14px;display:inline-block}
+nav a:hover{background:rgba(255,255,255,.32)}
+main{margin-top:-46px;padding-bottom:40px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 4px 14px #0f172a14;text-align:center}
+.stat b{display:block;font-size:30px;color:var(--primary)}
+.stat span{color:var(--muted);font-size:13px}
+.card{background:var(--card);border-radius:14px;padding:20px;margin-bottom:22px;box-shadow:0 4px 14px #0f172a14}
+.card h2{margin:0 0 14px;font-size:19px;color:var(--primary)}
+.card h2 small{color:var(--muted);font-weight:normal;font-size:13px}
+form.row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+input,select{padding:9px 11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#fff}
+input:focus,select:focus{outline:2px solid var(--primary);border-color:transparent}
+button{padding:9px 16px;border:0;border-radius:8px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer}
+button:hover{filter:brightness(1.1)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px;padding:10px;border-bottom:2px solid #e2e8f0}
+td{padding:10px;border-bottom:1px solid #eef2f7}
+tr:hover td{background:#f8fafc}
+.chip{display:inline-block;background:#eef2ff;color:var(--primary);padding:2px 9px;border-radius:12px;font-size:12px;margin:1px 3px 1px 0}
+a.link{color:var(--primary);text-decoration:none;font-weight:600}
+a.del{color:var(--danger);text-decoration:none;font-weight:600}
+.flash{background:#ecfeff;border-left:5px solid var(--primary-2);padding:12px 14px;border-radius:8px;margin-bottom:16px}
+.empty{color:var(--muted);text-align:center;padding:18px}
+form.inline{display:inline;margin:0}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style></head><body>
+
+<header><div class="wrap">
+  <h1>College Placement Management System</h1>
+  <p>Flask &middot; MongoDB (records) &middot; Neo4j (skill matching)</p>
+  <nav><a href="#students">Students</a><a href="#companies">Companies</a><a href="#matching">Matching</a><a href="#applications">Applications</a></nav>
+</div></header>
+
+<main>
+{% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}
+
+<div class="stats">
+  <div class="stat"><b>{{ students|length }}</b><span>Students</span></div>
+  <div class="stat"><b>{{ companies|length }}</b><span>Job Roles</span></div>
+  <div class="stat"><b>{{ matches|length }}</b><span>Matches</span></div>
+  <div class="stat"><b>{{ apps|length }}</b><span>Applications</span></div>
+</div>
+
+<section class="card" id="students">
+<h2>1. Student Management <small>MongoDB + Neo4j</small></h2>
+<form class="row" method="post" action="/student/save">
+  <input type="hidden" name="id" value="{{ edit._id if edit else '' }}">
+  <input name="name" placeholder="Name" value="{{ edit.name if edit else '' }}">
+  <input name="roll_no" placeholder="Roll No" value="{{ edit.roll_no if edit else '' }}">
+  <input name="department" placeholder="Department" value="{{ edit.department if edit else '' }}">
+  <input name="cgpa" placeholder="CGPA" size="5" value="{{ edit.cgpa if edit else '' }}">
+  <input name="skills" placeholder="skills, comma separated" size="28" value="{{ edit.skills|join(', ') if edit else '' }}">
+  <button>{{ 'Update Student' if edit else 'Add Student' }}</button>
+  {% if edit %}<a class="link" href="/" style="align-self:center">Cancel</a>{% endif %}
+</form>
+<div class="table-wrap"><table>
+<tr><th>Name</th><th>Roll No</th><th>Dept</th><th>CGPA</th><th>Skills</th><th>Action</th></tr>
+{% for s in students %}<tr><td><b>{{ s.name }}</b></td><td>{{ s.roll_no }}</td><td>{{ s.department }}</td><td>{{ s.cgpa }}</td>
+<td>{% for k in s.skills %}<span class="chip">{{ k }}</span>{% endfor %}</td>
+<td><a class="link" href="/?edit={{ s._id }}#students">Edit</a> &nbsp;
+<a class="del" href="/student/delete/{{ s._id }}" onclick="return confirm('Delete this student?')">Delete</a></td></tr>
+{% else %}<tr><td colspan="6" class="empty">No students yet.</td></tr>{% endfor %}
+</table></div>
+</section>
+
+<section class="card" id="companies">
+<h2>2. Company Management <small>MongoDB + Neo4j</small></h2>
+<form class="row" method="post" action="/company/add">
+  <input name="name" placeholder="Company"> <input name="role" placeholder="Job role">
+  <input name="min_cgpa" placeholder="Min CGPA" size="8"> <input name="skills" placeholder="required skills, comma separated" size="30">
+  <button>Add Company</button>
+</form>
+<div class="table-wrap"><table>
+<tr><th>Company</th><th>Role</th><th>Min CGPA</th><th>Required Skills</th><th>Action</th></tr>
+{% for c in companies %}<tr><td><b>{{ c.name }}</b></td><td>{{ c.role }}</td><td>{{ c.min_cgpa }}</td>
+<td>{% for k in c.skills %}<span class="chip">{{ k }}</span>{% endfor %}</td>
+<td><a class="del" href="/company/delete/{{ c._id }}" onclick="return confirm('Delete this company?')">Delete</a></td></tr>
+{% else %}<tr><td colspan="5" class="empty">No companies yet.</td></tr>{% endfor %}
+</table></div>
+</section>
+
+<section class="card" id="matching">
+<h2>3. Placement Matching <small>computed by Neo4j</small></h2>
+<div class="table-wrap"><table>
+<tr><th>Student</th><th>Company</th><th>Job Role</th><th>Matching Skills</th><th>Action</th></tr>
+{% for m in matches %}<tr><td><b>{{ m.Student }}</b></td><td>{{ m.Company }}</td><td>{{ m.JobRole }}</td>
+<td>{% for k in m.MatchingSkills %}<span class="chip">{{ k }}</span>{% endfor %}</td>
+<td><form class="inline" method="post" action="/apply">
+<input type="hidden" name="student_id" value="{{ m.sid }}"><input type="hidden" name="company_id" value="{{ m.cid }}">
+<button>Apply</button></form></td></tr>
+{% else %}<tr><td colspan="5" class="empty">No matches yet. Add students and companies with shared skills.</td></tr>{% endfor %}
+</table></div>
+</section>
+
+<section class="card" id="applications">
+<h2>4. Job Applications <small>stored in MongoDB</small></h2>
+<div class="table-wrap"><table>
+<tr><th>Student</th><th>Company</th><th>Role</th><th>Applied On</th><th>Status</th></tr>
+{% for a in apps %}<tr><td><b>{{ a.student }}</b></td><td>{{ a.company }}</td><td>{{ a.role }}</td><td>{{ a.applied_on }}</td>
+<td><form class="inline" method="post" action="/status/{{ a._id }}">
+<select name="status" onchange="this.form.submit()">
+{% for st in statuses %}<option {{ 'selected' if st == a.status else '' }}>{{ st }}</option>{% endfor %}
+</select></form></td></tr>
+{% else %}<tr><td colspan="5" class="empty">No applications yet.</td></tr>{% endfor %}
+</table></div>
+</section>
+</main>
+</body></html>
